@@ -33,26 +33,37 @@ trait RolodexService extends HttpService {
   implicit def ec = actorRefFactory.dispatcher
 
   def route(model: ActorRef)(implicit askTimeout: Timeout) = {
+    path("user") {
+      put {
+        formFields('username.as[String], 'password.as[String]).as(CreateUser) {
+          (userCreds) =>
+            onSuccess(model ? userCreds) {
+              case resp: String => complete(OK, resp)
+            }
+        }
 
-    path("user" / Segment) { id =>
-      get {
-        onSuccess(model ? id) {
-          case resp: String =>
-            complete(OK, resp)
-        }
-      } ~
-        post {
-          onSuccess(model ? id) {
-            case resp: String =>
-              complete(OK, resp)
-          }
-        }
+      }
     } ~
+      pathPrefix("user" / Segment) { id =>
+        get {
+          onSuccess(model ? id) {
+            case resp: String => complete(OK, resp)
+          }
+        } ~
+          post {
+            onSuccess(model ? id) {
+              case resp: String => complete(OK, resp)
+            }
+          }
+      } ~
       path("login") {
         post {
-          parameters('username.as[String], 'password.as[String]).as(LoginParameters) {
+          formFields('username.as[String], 'password.as[String]).as(LoginParameters) {
             (loginParameters) =>
-              complete(OK, "ok")
+              onSuccess(model ? loginParameters) {
+                case resp: String =>
+                  complete(OK, resp)
+              }
           }
         }
       }
@@ -60,3 +71,14 @@ trait RolodexService extends HttpService {
   }
 
 }
+
+//class RolodexService extends HttpService {
+//  val route = {
+//    get {
+//      path("") {
+//        respondWithMediaType(`text/html`) { // XML is marshalled to `text/xml` by default, so we simply override here
+//          complete(index)
+//        }
+//      }
+//    }
+//}

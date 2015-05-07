@@ -28,4 +28,6 @@ libraryDependencies ++=
 
 scalariformSettings
 
+javaOptions := Seq("-Xdebug", "-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=5005")
+
 seq(Revolver.settings: _*)
