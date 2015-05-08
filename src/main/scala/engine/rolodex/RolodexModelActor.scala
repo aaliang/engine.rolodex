@@ -15,7 +15,6 @@ object RolodexModelActor {
 }
 
 class RolodexModelActor extends Actor with RolodexLogin {
-  import RolodexModelActor._
 
   def receive = {
     case id: String =>
@@ -26,18 +25,19 @@ class RolodexModelActor extends Actor with RolodexLogin {
 
       if (security.hash == generateHash(loginParameters.password, security.salt)) {
         sender ! "ok"
-      }
-      else {
+      } else {
         sender ! "wrongpassword"
       }
 
     case createUser: CreateUser =>
+      val _sender = sender
       val future = Future {
         val salt = generateSalt
         val passwordHash = generateHash(createUser.password, salt)
 
+        UserLoginDAO.insert(passwordHash, createUser.username, createUser.email, salt)
 
-        sender ! "ok"
+        _sender ! "ok"
       }
   }
 }
@@ -46,7 +46,7 @@ trait RolodexLogin {
 
   val random = new scala.util.Random(new SecureRandom())
 
-  case class SecurityCreds(salt:String, hash:String)
+  case class SecurityCreds(salt: String, hash: String)
 
   def generateSalt(): String = {
     random.nextString(12)
@@ -63,7 +63,7 @@ trait RolodexLogin {
       }).toString
   }
 
-  def getHashAndSaltFromUsernameSomehow ():SecurityCreds = {
+  def getHashAndSaltFromUsernameSomehow(): SecurityCreds = {
     SecurityCreds("testsalt", "testhash")
   }
 }

@@ -35,13 +35,12 @@ trait RolodexService extends HttpService {
   def route(model: ActorRef)(implicit askTimeout: Timeout) = {
     path("user") {
       put {
-        formFields('username.as[String], 'password.as[String]).as(CreateUser) {
+        formFields('username, 'password, 'email.?).as(CreateUser) {
           (userCreds) =>
             onSuccess(model ? userCreds) {
-              case resp: String => complete(OK, resp)
+              case _ => complete(OK, "k")
             }
         }
-
       }
     } ~
       pathPrefix("user" / Segment) { id =>
@@ -58,7 +57,7 @@ trait RolodexService extends HttpService {
       } ~
       path("login") {
         post {
-          formFields('username.as[String], 'password.as[String]).as(LoginParameters) {
+          formFields('username, 'password).as(LoginParameters) {
             (loginParameters) =>
               onSuccess(model ? loginParameters) {
                 case resp: String =>
@@ -67,7 +66,6 @@ trait RolodexService extends HttpService {
           }
         }
       }
-
   }
 
 }
