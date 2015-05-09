@@ -3,8 +3,8 @@ package engine.rolodex
 import akka.actor.{ Props, Actor }
 import java.security.{ MessageDigest, SecureRandom }
 import scala.concurrent._
+import scala.util.{ Success, Failure }
 import ExecutionContext.Implicits.global
-import java.util.Arrays
 
 object RolodexModelActor {
 
@@ -20,7 +20,6 @@ object RolodexModelActor {
 class RolodexModelActor extends Actor with RolodexLogin {
 
   def receive = {
-    case id: String => sender ! "ok"
     case loginParameters: LoginParameters =>
       val _sender = sender
       UserLoginDAO.selectByUsername(loginParameters.username).onSuccess {
@@ -43,11 +42,10 @@ class RolodexModelActor extends Actor with RolodexLogin {
         val salt = generateSalt
         val passwordHash = generateHash(createUser.password, salt)
 
-        UserLoginDAO
-          .insert(UserLogin(passwordHash, createUser.username, createUser.email, salt))
-          .onSuccess {
-            case _ => _sender ! "ok"
-          }
+        UserLoginDAO.insert(UserLogin(passwordHash, createUser.username, createUser.email, salt)).onComplete {
+          case Success(_) =>  _sender ! "ok"
+          case Failure(_) => _sender ! "invalid"
+        }
       }
   }
 }
@@ -58,10 +56,19 @@ trait RolodexLogin {
 
   case class SecurityCreds(salt: String, hash: String)
 
+  /**
+   * Generates a secure random salt
+   */
   def generateSalt(): String = {
     random.nextString(16)
   }
 
+  /**
+   * Given a password and salt, returns the validation hash
+   *
+   * @param password the string to use as the password, in plaintext
+   * @param sel a random salt, ideally generated from [[generateSalt]]
+   */
   def generateHash(password: String, sel: String): String = {
 
     val sha256 = MessageDigest.getInstance("SHA-256")

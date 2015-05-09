@@ -38,22 +38,23 @@ trait RolodexService extends HttpService {
         formFields('username, 'password, 'email.?).as(CreateUser) {
           (userCreds) =>
             onSuccess(model ? userCreds) {
-              case _ => complete(OK, "k")
+              case resp: String => complete(OK, resp)
             }
         }
       }
     } ~
-    path("login") {
-      post {
-        formFields('username, 'password).as(LoginParameters) {
-          (loginParameters) =>
-            onSuccess(model ? loginParameters) {
-              case resp:String =>
-                complete(OK, resp)
-            }
+      path("login") {
+        post {
+          formFields('username, 'password).as(LoginParameters) {
+            (loginParameters) =>
+              onSuccess(model ? loginParameters) {
+                case resp: String =>
+                  complete(OK, resp)
+              }
+          }
         }
       }
-    }/* ~
+    /* ~ //redacted for now
     pathPrefix("user" / Segment / "password") { userid =>
       post {
 
