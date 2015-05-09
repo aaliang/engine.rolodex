@@ -19,7 +19,7 @@ class RolodexModelActor extends Actor with RolodexLogin {
   def receive = {
     case loginParameters: LoginParameters =>
       val _sender = sender
-      UserLoginDAO.selectByUsername(loginParameters.username).onSuccess {
+      UserLoginDAO.selectByUsername(loginParameters.username.toLowerCase).onSuccess {
         case Seq(ulogin: UserLogin) =>
           generateHash(loginParameters.password, ulogin.salt) match {
             case ulogin.hash => _sender ! "ok"
@@ -37,7 +37,7 @@ class RolodexModelActor extends Actor with RolodexLogin {
         UserLoginDAO.insert(
           UserLogin(
             passwordHash,
-            createUser.username,
+            createUser.username.toLowerCase,
             salt,
             createUser.email,
             createUser.role
