@@ -43,40 +43,24 @@ trait RolodexService extends HttpService {
         }
       }
     } ~
-      pathPrefix("user" / Segment) { id =>
-        get {
-          onSuccess(model ? id) {
-            case resp: String => complete(OK, resp)
-          }
-        } ~
-          post {
-            onSuccess(model ? id) {
-              case resp: String => complete(OK, resp)
+    path("login") {
+      post {
+        formFields('username, 'password).as(LoginParameters) {
+          (loginParameters) =>
+            onSuccess(model ? loginParameters) {
+              case resp:String =>
+                complete(OK, resp)
             }
-          }
-      } ~
-      path("login") {
-        post {
-          formFields('username, 'password).as(LoginParameters) {
-            (loginParameters) =>
-              onSuccess(model ? loginParameters) {
-                case resp: String =>
-                  complete(OK, resp)
-              }
-          }
         }
       }
+    }/* ~
+    pathPrefix("user" / Segment / "password") { userid =>
+      post {
+
+        onSuccess(model ? userid) {
+          case resp: String => complete(OK, resp)
+        }
+      }
+    }*/
   }
-
 }
-
-//class RolodexService extends HttpService {
-//  val route = {
-//    get {
-//      path("") {
-//        respondWithMediaType(`text/html`) { // XML is marshalled to `text/xml` by default, so we simply override here
-//          complete(index)
-//        }
-//      }
-//    }
-//}

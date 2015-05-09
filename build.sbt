@@ -24,13 +24,21 @@ libraryDependencies ++=
     "io.spray" %% "spray-can" % spray ::
     "io.spray" %% "spray-routing" % spray ::
     "io.spray" %% "spray-json" % "1.3.1" ::
-    "com.typesafe.slick" %% "slick" % "2.1.0" ::
-    "org.postgresql" % "postgresql" % "9.3-1100-jdbc4" ::
-    "com.mchange" % "c3p0" % "0.9.5" ::
+    "com.typesafe.slick" %% "slick" % "3.0.0" ::
+    "org.postgresql" % "postgresql" % "9.4-1201-jdbc4" ::
+    "com.zaxxer" % "HikariCP" % "2.3.5" ::
     Nil
 
 scalariformSettings
 
 javaOptions := Seq("-Xdebug", "-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=5005")
+
+javacOptions ++= Seq("-source", "1.8", "-target", "1.8", "-Xlint")
+
+initialize := {
+    val _ = initialize.value
+    if (sys.props("java.specification.version") != "1.8")
+        sys.error("Java 8 is required for this project.")
+}
 
 seq(Revolver.settings: _*)
