@@ -10,28 +10,30 @@ resolvers += "Typesafe Repository" at "http://repo.typesafe.com/typesafe/release
 
 resolvers += "spray repo" at "http://repo.spray.io"
 
+resolvers ++= Seq("snapshots", "releases").map(Resolver.sonatypeRepo)
+
 //resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots/"
 //resolvers += "Scalaz Bintray Repo"    at "http://dl.bintray.com/scalaz/releases"
 
 val akka = "2.3.10"
 val spray = "1.3.3"
 
-libraryDependencies ++=
-//    "ch.qos.logback" % "logback-classic" % "1.0.0" % "runtime" ::
-    "com.typesafe.akka" %% "akka-actor" % akka ::
-    "com.typesafe.akka" %% "akka-slf4j" % akka ::
-    "io.spray" %% "spray-caching" % spray ::
-    "io.spray" %% "spray-can" % spray ::
-    "io.spray" %% "spray-routing" % spray ::
-    "io.spray" %% "spray-json" % "1.3.1" ::
-    "com.typesafe.slick" %% "slick" % "3.0.0" ::
-    "org.postgresql" % "postgresql" % "9.4-1201-jdbc4" ::
-    "com.zaxxer" % "HikariCP" % "2.3.5" ::
-    Nil
+libraryDependencies ++= Seq(
+//    "ch.qos.logback" % "logback-classic" % "1.0.0" % "runtime",
+    "org.postgresql" % "postgresql" % "9.4-1201-jdbc4",
+    "com.typesafe.akka" %% "akka-actor" % akka,
+    "com.typesafe.akka" %% "akka-slf4j" % akka,
+    "io.spray" %% "spray-caching" % spray,
+    "io.spray" %% "spray-can" % spray,
+    "io.spray" %% "spray-routing" % spray,
+    "io.spray" %% "spray-json" % "1.3.1",
+    "com.typesafe.slick" %% "slick" % "3.0.0",
+    "com.zaxxer" % "HikariCP" % "2.3.5",
+    "com.jason-goodwin" % "authentikat-jwt_2.11" % "0.4.1")
 
 scalariformSettings
 
-//javaOptions := Seq("-Xdebug", "-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=5005")
+javaOptions := Seq("-Xdebug", "-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=5005")
 
 javacOptions ++= Seq("-source", "1.8", "-target", "1.8", "-Xlint")
 

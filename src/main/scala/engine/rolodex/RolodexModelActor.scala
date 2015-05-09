@@ -43,8 +43,10 @@ class RolodexModelActor extends Actor with RolodexLogin {
             createUser.role
           )
         ).onComplete {
-            case Success(_) => _sender ! "ok"
-            case Failure(_) => _sender ! "invalid"
+            case Success(e) =>
+              _sender ! "ok"
+            case Failure(e) =>
+              _sender ! "invalid"
           }
       }
   }
@@ -79,7 +81,4 @@ trait RolodexLogin {
 
   }
 
-  def getHashAndSaltFromUsernameSomehow(): SecurityCreds = {
-    SecurityCreds("testsalt", "testhash")
-  }
 }

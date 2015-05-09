@@ -16,9 +16,9 @@ object TopLevel {
 
 class ProductionTopLevel extends TopLevel with TopLevelConfig {
   private def c = context.system.settings.config
-  def interface = c.getString("example-app.service.interface")
-  def port = c.getInt("example-app.service.port")
-  implicit def askTimeout = Timeout(c.getMilliseconds("example-app.service.ask-timeout"))
+  def interface = c.getString("rolodex-app.service.interface")
+  def port = c.getInt("rolodex-app.service.port")
+  implicit def askTimeout = Timeout(c.getInt("rolodex-app.service.ask-timeout"), java.util.concurrent.TimeUnit.MILLISECONDS)
 
   def createModel = context.actorOf(RolodexModelActor.props, RolodexModelActor.name)
   def createService(model: ActorRef) = context.actorOf(RolodexServiceActor.props(model), RolodexServiceActor.name)
