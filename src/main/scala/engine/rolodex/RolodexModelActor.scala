@@ -12,9 +12,6 @@ object RolodexModelActor {
 
   def name = "rolodex-model"
 
-  case object UserNotFound
-  case class UserSummary(user: UserSummary)
-
 }
 
 class RolodexModelActor extends Actor with RolodexLogin {
@@ -23,16 +20,11 @@ class RolodexModelActor extends Actor with RolodexLogin {
     case loginParameters: LoginParameters =>
       val _sender = sender
       UserLoginDAO.selectByUsername(loginParameters.username).onSuccess {
-        case Seq(ulogin: UserLogin) => {
-          val hash = generateHash(loginParameters.password, ulogin.salt)
-
-          if (hash == ulogin.hash) {
-            _sender ! "ok"
-          } else {
-            _sender ! "invalid"
+        case Seq(ulogin: UserLogin) =>
+          generateHash(loginParameters.password, ulogin.salt) match {
+            case ulogin.hash => _sender ! "ok"
+            case _ => _sender ! "invalid"
           }
-
-        }
         case _ => _sender ! "invalid"
       }
     case createUser: CreateUser =>
@@ -42,10 +34,18 @@ class RolodexModelActor extends Actor with RolodexLogin {
         val salt = generateSalt
         val passwordHash = generateHash(createUser.password, salt)
 
-        UserLoginDAO.insert(UserLogin(passwordHash, createUser.username, createUser.email, salt)).onComplete {
-          case Success(_) =>  _sender ! "ok"
-          case Failure(_) => _sender ! "invalid"
-        }
+        UserLoginDAO.insert(
+          UserLogin(
+            passwordHash,
+            createUser.username,
+            salt,
+            createUser.email,
+            createUser.role
+          )
+        ).onComplete {
+            case Success(_) => _sender ! "ok"
+            case Failure(_) => _sender ! "invalid"
+          }
       }
   }
 }

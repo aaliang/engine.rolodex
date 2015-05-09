@@ -35,7 +35,7 @@ trait RolodexService extends HttpService {
   def route(model: ActorRef)(implicit askTimeout: Timeout) = {
     path("user") {
       put {
-        formFields('username, 'password, 'email.?).as(CreateUser) {
+        formFields('username, 'password, 'email.?, 'role.?).as(CreateUser) {
           (userCreds) =>
             onSuccess(model ? userCreds) {
               case resp: String => complete(OK, resp)

@@ -17,7 +17,7 @@ val akka = "2.3.10"
 val spray = "1.3.3"
 
 libraryDependencies ++=
-    "ch.qos.logback" % "logback-classic" % "1.0.0" % "runtime" ::
+//    "ch.qos.logback" % "logback-classic" % "1.0.0" % "runtime" ::
     "com.typesafe.akka" %% "akka-actor" % akka ::
     "com.typesafe.akka" %% "akka-slf4j" % akka ::
     "io.spray" %% "spray-caching" % spray ::
@@ -31,7 +31,7 @@ libraryDependencies ++=
 
 scalariformSettings
 
-javaOptions := Seq("-Xdebug", "-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=5005")
+//javaOptions := Seq("-Xdebug", "-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=5005")
 
 javacOptions ++= Seq("-source", "1.8", "-target", "1.8", "-Xlint")
 

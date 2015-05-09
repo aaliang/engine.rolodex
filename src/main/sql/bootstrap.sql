@@ -8,6 +8,7 @@ CREATE TABLE user_login
   username text NOT NULL,
   email text,
   salt text NOT NULL,
+  role integer NOT NULL DEFAULT 0,
   CONSTRAINT cx_username_unique UNIQUE (username)
 )
 WITH (

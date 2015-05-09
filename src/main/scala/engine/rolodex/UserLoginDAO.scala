@@ -7,16 +7,18 @@ import engine.BaseDAO
 case class UserLogin(
   hash: String,
   username: String,
+  salt: String,
   email: Option[String],
-  salt: String)
+  role: Option[Int])
 
 class UserLogins(tag: Tag) extends Table[UserLogin](tag, "user_login") {
   def hash = column[String]("hash")
   def username = column[String]("username")
   def email = column[String]("email")
   def salt = column[String]("salt")
+  def role = column[Int]("role", O.Default(0))
 
-  def * = (hash, username, email.?, salt) <> (UserLogin.tupled, UserLogin.unapply _)
+  def * = (hash, username, salt, email.?, role.?) <> (UserLogin.tupled, UserLogin.unapply _)
 }
 
 object UserLoginDAO extends BaseDAO {
