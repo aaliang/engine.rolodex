@@ -13,7 +13,7 @@ trait AuthHttpService extends HttpService {
 
   val invalidHeader = MalformedHeaderRejection("Invalid", s"Auth Token")
 
-  //  case class AuthClaimSet(role: String, username: String)
+  case class AuthClaimSet(role: String, username: String)
 
   implicit def myExceptionHandler =
     ExceptionHandler {
@@ -29,11 +29,11 @@ trait AuthHttpService extends HttpService {
     headerValueByName("X-Auth-Token").flatMap(e =>
       TokenAuthenticator.parseToken(e) match {
         case Some(deserializedToken) if deserializedToken.get("expires").get.toLong > System.currentTimeMillis =>
-          hprovide(deserializedToken.get("role").get :: deserializedToken.get("username").get :: HNil)
+          provide(AuthClaimSet(deserializedToken.get("role").get, deserializedToken.get("username").get))
         case _ => {
           throw new IllegalRequestException(StatusCodes.Unauthorized)
           //this is a hack. can't figure out a better typesafe way to fail a request while passing contents
-          hprovide("" :: "" :: HNil)
+          provide(AuthClaimSet("", ""))
         }
       }
     )

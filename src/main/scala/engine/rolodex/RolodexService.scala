@@ -64,9 +64,9 @@ trait RolodexService extends AuthHttpService {
         }
       } ~
       path("protected") {
-        authEngine { (role, username) =>
+        authEngine { a =>
           get {
-            complete(OK, username) //for now, echo
+            complete(OK, a.username) //for now, echo
           }
         }
       }
