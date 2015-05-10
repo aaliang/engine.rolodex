@@ -1,12 +1,10 @@
 package engine.authenticator
 
-import shapeless.{HNil }
-import spray.http.{IllegalRequestException, HttpHeader }
+import shapeless.{ HNil }
+import spray.http.{ IllegalRequestException, HttpHeader }
 import spray.routing._
 import spray.http.StatusCodes
 import spray.http.StatusCodes.InternalServerError
-
-import scala.util.control.NonFatal
 
 /**
  * Provides a custom directive for authentication
@@ -15,6 +13,7 @@ trait AuthHttpService extends HttpService {
 
   val invalidHeader = MalformedHeaderRejection("Invalid", s"Auth Token")
 
+  //  case class AuthClaimSet(role: String, username: String)
 
   implicit def myExceptionHandler =
     ExceptionHandler {
@@ -30,11 +29,11 @@ trait AuthHttpService extends HttpService {
     headerValueByName("X-Auth-Token").flatMap(e =>
       TokenAuthenticator.parseToken(e) match {
         case Some(deserializedToken) if deserializedToken.get("expires").get.toLong > System.currentTimeMillis =>
-          hprovide(deserializedToken :: HNil)
+          hprovide(deserializedToken.get("role").get :: deserializedToken.get("username").get :: HNil)
         case _ => {
           throw new IllegalRequestException(StatusCodes.Unauthorized)
           //this is a hack. can't figure out a better typesafe way to fail a request while passing contents
-          hprovide("illegal" :: HNil)
+          hprovide("" :: "" :: HNil)
         }
       }
     )

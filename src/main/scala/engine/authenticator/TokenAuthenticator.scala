@@ -1,7 +1,6 @@
 package engine.authenticator
 
 import authentikat.jwt._
-import spray.json._
 
 object TokenAuthenticator {
   val header = JwtHeader("HS256")
