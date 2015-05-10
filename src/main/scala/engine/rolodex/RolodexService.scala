@@ -3,13 +3,9 @@ package engine.rolodex
 import akka.actor.{ Props, Actor, ActorRef }
 import akka.pattern.ask
 import akka.util.Timeout
-import spray.http.StatusCodes
 import spray.http.StatusCodes._
-import spray.http.CacheDirectives.`max-age`
-import spray.http.HttpHeaders.`Cache-Control`
-import spray.routing.HttpService
-import spray.routing._
-import spray.http._
+import com.typesafe.config.ConfigFactory
+import engine.authenticator._
 
 object RolodexServiceActor {
 
@@ -28,7 +24,12 @@ class RolodexServiceActor(model: ActorRef, implicit val askTimeout: Timeout) ext
 
 }
 
-trait RolodexService extends HttpService {
+trait RolodexService extends AuthHttpService {
+  private val conf = ConfigFactory.load()
+
+  val defaultTokenTTL = conf.getInt("rolodex-app.token-ttl")
+
+  implicit val secretKey = conf.getString("rolodex-app.secret-key")
 
   implicit def ec = actorRefFactory.dispatcher
 
@@ -48,9 +49,24 @@ trait RolodexService extends HttpService {
           formFields('username, 'password).as(LoginParameters) {
             (loginParameters) =>
               onSuccess(model ? loginParameters) {
+                case goodLogin: UserLogin =>
+                  complete(OK, TokenAuthenticator.getToken(
+                    Map(
+                      "role" -> goodLogin.role.getOrElse(0).toString,
+                      "username" -> goodLogin.username,
+                      "expires" -> (System.currentTimeMillis + defaultTokenTTL).toString
+                    )
+                  ))
                 case resp: String =>
                   complete(OK, resp)
               }
+          }
+        }
+      } ~
+      path("protected") {
+        authEngine { a =>
+          get {
+            complete(OK, a) //for now, echo
           }
         }
       }

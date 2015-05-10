@@ -1,6 +1,7 @@
-package engine.rolodex
+package engine.authenticator
 
 import authentikat.jwt._
+import spray.json._
 
 object TokenAuthenticator {
   val header = JwtHeader("HS256")
@@ -13,8 +14,7 @@ object TokenAuthenticator {
 
   def parseToken(jwt: String) = {
     jwt match {
-      case JsonWebToken(header, claims, sig) =>
-        claims.asSimpleMap.toOption
+      case JsonWebToken(header, claims, sig) => claims.asSimpleMap.toOption
       case _ => None
     }
   }

@@ -22,7 +22,7 @@ class RolodexModelActor extends Actor with RolodexLogin {
       UserLoginDAO.selectByUsername(loginParameters.username.toLowerCase).onSuccess {
         case Seq(ulogin: UserLogin) =>
           generateHash(loginParameters.password, ulogin.salt) match {
-            case ulogin.hash => _sender ! "ok"
+            case ulogin.hash => _sender ! ulogin
             case _ => _sender ! "invalid"
           }
         case _ => _sender ! "invalid"
@@ -33,21 +33,19 @@ class RolodexModelActor extends Actor with RolodexLogin {
       Future {
         val salt = generateSalt
         val passwordHash = generateHash(createUser.password, salt)
+        val login = UserLogin(
+          passwordHash,
+          createUser.username.toLowerCase,
+          salt,
+          createUser.email,
+          createUser.role)
 
-        UserLoginDAO.insert(
-          UserLogin(
-            passwordHash,
-            createUser.username.toLowerCase,
-            salt,
-            createUser.email,
-            createUser.role
-          )
-        ).onComplete {
-            case Success(e) =>
-              _sender ! "ok"
-            case Failure(e) =>
-              _sender ! "invalid"
-          }
+        UserLoginDAO.insert(login).onComplete {
+          case Success(e) =>
+            _sender ! login
+          case Failure(e) =>
+            _sender ! null
+        }
       }
   }
 }
