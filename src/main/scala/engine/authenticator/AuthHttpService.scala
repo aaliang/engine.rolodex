@@ -19,6 +19,8 @@ trait AuthHttpService extends HttpService {
     ExceptionHandler {
       case a: IllegalRequestException =>
         complete(InternalServerError, "Bad Token")
+      case _ =>
+        complete(InternalServerError, "Bad Auth")
     }
 
   /**
@@ -26,7 +28,7 @@ trait AuthHttpService extends HttpService {
    */
   def authEngine = {
 
-    headerValueByName("X-Auth-Token").flatMap(e =>
+    val f = (e:String) => {
       TokenAuthenticator.parseToken(e) match {
         case Some(deserializedToken) if deserializedToken.get("expires").get.toLong > System.currentTimeMillis =>
           provide(AuthClaimSet(deserializedToken.get("role").get, deserializedToken.get("username").get))
@@ -36,7 +38,12 @@ trait AuthHttpService extends HttpService {
           provide(AuthClaimSet("", ""))
         }
       }
-    )
+    }
+
+    anyParams('token.?).flatMap {
+      case Some(e) => f(e)
+      case _ => headerValueByName("X-Auth-Token").flatMap(f)
+    }
   }
 
   /**
