@@ -19,33 +19,33 @@ class RolodexModelActor extends Actor with RolodexLogin {
   def receive = {
     case loginParameters: LoginParameters =>
       val _sender = sender
-      UserLoginDAO.selectByUsername(loginParameters.username.toLowerCase).onSuccess {
-        case Seq(ulogin: UserLogin) =>
-          generateHash(loginParameters.password, ulogin.salt) match {
-            case ulogin.hash => _sender ! ulogin
-            case _ => _sender ! "invalid"
+      UserLoginVAO.selectByUsername(loginParameters.username) onComplete {
+        case Success(user) =>
+          generateHash(loginParameters.password, user.salt) match {
+            case user.hash => _sender ! user
+            case _ => _sender ! "bad"
           }
-        case _ => _sender ! "invalid"
+        case Failure(e) =>
+          _sender ! "bad"
       }
     case createUser: CreateUser =>
+
       val _sender = sender
+      val salt = generateSalt
+      val passwordHash = generateHash(createUser.password, salt)
 
-      Future {
-        val salt = generateSalt
-        val passwordHash = generateHash(createUser.password, salt)
-        val login = UserLogin(
-          passwordHash,
-          createUser.username.toLowerCase,
-          salt,
-          createUser.email,
-          createUser.role)
+      val login = UserLogin(
+        passwordHash,
+        createUser.username.toLowerCase,
+        salt,
+        createUser.email,
+        createUser.role)
 
-        UserLoginDAO.insert(login).onComplete {
-          case Success(e) =>
-            _sender ! login
-          case Failure(e) =>
-            _sender ! null
-        }
+      UserLoginVAO.insert(login).onComplete {
+        case Success(e) =>
+          _sender ! login
+        case Failure(e) =>
+          _sender ! null
       }
   }
 }
@@ -70,13 +70,10 @@ trait RolodexLogin {
    * @param sel a random salt, ideally generated from [[generateSalt]]
    */
   def generateHash(password: String, sel: String): String = {
-
     val sha256 = MessageDigest.getInstance("SHA-256")
     val init = new String(sha256.digest((password + sel).getBytes))
     (1 to 1000)
       .toStream
       .foldLeft(init)((a, _) => new String(sha256.digest((a + sel).getBytes)))
-
   }
-
 }
