@@ -23,26 +23,23 @@ trait AuthHttpService extends HttpService {
         complete(InternalServerError, "Bad Auth")
     }
 
+  def fAuth (e:String) = {
+    TokenAuthenticator.parseToken(e) match {
+      case Some(deserializedToken) if deserializedToken.get("expires").get.toLong > System.currentTimeMillis =>
+        provide(AuthClaimSet(deserializedToken.get("role").get, deserializedToken.get("username").get))
+      case _ =>
+        throw new IllegalRequestException(StatusCodes.Unauthorized)
+    }
+  }
+
   /**
    * Checks if the jwt token is (still) valid. Decoded claimset will be forwarded to inner route
    */
   def authEngine = {
 
-    val f = (e:String) => {
-      TokenAuthenticator.parseToken(e) match {
-        case Some(deserializedToken) if deserializedToken.get("expires").get.toLong > System.currentTimeMillis =>
-          provide(AuthClaimSet(deserializedToken.get("role").get, deserializedToken.get("username").get))
-        case _ => {
-          throw new IllegalRequestException(StatusCodes.Unauthorized)
-          //this is a hack. can't figure out a better typesafe way to fail a request while passing contents
-          provide(AuthClaimSet("", ""))
-        }
-      }
-    }
-
     anyParams('token.?).flatMap {
-      case Some(e) => f(e)
-      case _ => headerValueByName("X-Auth-Token").flatMap(f)
+      case Some(e) => fAuth(e)
+      case _ => headerValueByName("X-Auth-Token").flatMap(fAuth)
     }
   }
 
