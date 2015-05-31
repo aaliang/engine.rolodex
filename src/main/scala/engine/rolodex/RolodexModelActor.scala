@@ -70,10 +70,20 @@ trait RolodexLogin {
    * @param sel a random salt, ideally generated from [[generateSalt]]
    */
   def generateHash(password: String, sel: String): String = {
-    val sha256 = MessageDigest.getInstance("SHA-256")
-    val init = new String(sha256.digest((password + sel).getBytes))
+
+    val init = toShaHex(password + sel)
+
     (1 to 1000)
       .toStream
-      .foldLeft(init)((a, _) => new String(sha256.digest((a + sel).getBytes)))
+      .foldLeft(init)((a, _) => toShaHex(a + sel))
+
+  }
+
+  def toShaHex(s:String) = {
+
+    MessageDigest.getInstance("SHA-256")
+                  .digest(s.getBytes)
+                  .map("%02X".format(_))
+                  .mkString
   }
 }
