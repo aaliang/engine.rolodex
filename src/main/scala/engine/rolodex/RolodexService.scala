@@ -58,7 +58,7 @@ trait RolodexService extends AuthHttpService {
                     )
                   ))
                 case resp: String =>
-                  complete(OK, resp)
+                  complete(Unauthorized, resp)
               }
           }
         }
